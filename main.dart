@@ -21,6 +21,107 @@ class MyAppState extends State<MyApp> {
   int k = 0;
   // This widget is the root of your application.
 
+  String calculateResult(String s, int bodmas_index, int count) {
+    if (count == 0) return s;
+
+    var bodmas = ['%', '/', '*', '+', '-'];
+
+    if (bodmas_index > (bodmas.length - 1)) bodmas_index = 0;
+
+    bool found = false;
+    int index = 0;
+    String sign = "";
+
+    for (int i = 0; i < s.length; i++) {
+      if (bodmas[bodmas_index] == s[i]) {
+        found = true;
+        index = i;
+        sign += bodmas[bodmas_index];
+      }
+    }
+
+    if (!found) return calculateResult(s, bodmas_index + 1, count);
+
+    int leftmost_index = 0;
+    int rightmost_index = 0;
+    String temp_left = "";
+    String left = "", right = "";
+
+    for (int i = index - 1;
+        i >= 0 &&
+            ((s[i] != '+' &&
+                    s[i] != '-' &&
+                    s[i] != '*' &&
+                    s[i] != '/' &&
+                    s[i] != '%') ||
+                (i == 0 && s[i] == '-'));
+        i--) {
+      temp_left += s[i];
+      leftmost_index = i;
+    }
+    for (int i = temp_left.length - 1; i >= 0; i--) left += temp_left[i];
+
+    for (int i = index + 1;
+        i < s.length &&
+            (s[i] != '+' &&
+                s[i] != '-' &&
+                s[i] != '*' &&
+                s[i] != '/' &&
+                s[i] != '%');
+        i++) {
+      right += s[i];
+      rightmost_index = i;
+    }
+
+    double inner_result = 0;
+
+    double num1 = double.parse(left);
+    double num2 = double.parse(right);
+
+    switch (sign) {
+      case "%":
+        inner_result = num1 % num2;
+        break;
+      case "*":
+        inner_result = num1 * num2;
+        break;
+      case "/":
+        if (num2 == 0) return "0";
+        inner_result = num1 / num2;
+        break;
+      case "+":
+        inner_result = num1 + num2;
+        break;
+      case "-":
+        inner_result = num1 - num2;
+        break;
+    }
+
+    String updated = "";
+
+    for (int i = 0; i < s.length; i++) {
+      if (i < leftmost_index || i > rightmost_index)
+        updated += s[i];
+      else if (i == index) updated += inner_result.toString();
+    }
+
+    return calculateResult(updated, 0, count - 1);
+  }
+
+  String calculate(String k) {
+    int operators_count = 0;
+    for (int i = 0; i < k.length; i++) {
+      if (k[i] == '+' ||
+          k[i] == '-' ||
+          k[i] == '/' ||
+          k[i] == '*' ||
+          k[i] == '%') operators_count++;
+    }
+    if (k[0] == '-') operators_count--;
+
+    return calculateResult(k, 0, operators_count);
+  }
+
   @override
   Widget build(BuildContext context) {
     double y_offset = 1.0;
@@ -29,8 +130,8 @@ class MyAppState extends State<MyApp> {
     String previousresult = "";
 
     bool first = true;
-
     return MaterialApp(
+      theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       home: Scaffold(
         backgroundColor: Color.fromRGBO(39, 39, 39, 1),
@@ -61,32 +162,38 @@ class MyAppState extends State<MyApp> {
                             flex: 2,
                             child: Container(
                               alignment: Alignment.bottomRight,
-                              margin: EdgeInsets.all(2.0),
-                              padding: EdgeInsets.fromLTRB(0, 0, 16.0, 0),
+                              padding: EdgeInsets.fromLTRB(48.0, 0, 16.0, 0),
                               child: StreamBuilder(
                                   stream: previousBloc.previousStream,
                                   builder: (context, snapshot) {
-                                    return Text(
-                                      previousresult,
-                                      style: TextStyle(
-                                          fontSize: 35, color: Colors.white),
+                                    return FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        previousresult,
+                                        style: TextStyle(
+                                            fontSize: 30, color: Colors.white),
+                                      ),
                                     );
                                   }),
-                              //color: Colors.blue,
+                              // color: Colors.blue,
                             ),
                           ),
                           Expanded(
                             flex: 1,
                             child: Container(
-                              padding: EdgeInsets.fromLTRB(0, 4.0, 18.0, 4.0),
+                              padding:
+                                  EdgeInsets.fromLTRB(18.0, 4.0, 18.0, 4.0),
                               alignment: Alignment.centerRight,
                               child: StreamBuilder(
                                 stream: counterBloc.counterStream,
                                 builder: (context, snapshot) {
-                                  return Text(
-                                    result,
-                                    style: TextStyle(
-                                        fontSize: 40, color: Colors.white),
+                                  return FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      result,
+                                      style: TextStyle(
+                                          fontSize: 40, color: Colors.white),
+                                    ),
                                   );
                                 },
                               ),
@@ -123,8 +230,8 @@ class MyAppState extends State<MyApp> {
                                         child: Text(
                                           'More',
                                           style: TextStyle(
-                                            color:
-                                                Color.fromRGBO(70, 70, 70, 1),
+                                            color: Color.fromRGBO(
+                                                100, 100, 100, 1),
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -159,7 +266,7 @@ class MyAppState extends State<MyApp> {
                                                 'C',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      100, 100, 100, 1),
                                                   fontSize: 25,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -221,7 +328,7 @@ class MyAppState extends State<MyApp> {
                                                 'AC',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      100, 100, 100, 1),
                                                   fontSize: 25,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -231,6 +338,10 @@ class MyAppState extends State<MyApp> {
                                               splashColor: Colors.transparent,
                                               onPressed: () {
                                                 result = "0";
+                                                previousresult = "";
+                                                previousBloc.previousSink
+                                                    .add(previousresult);
+
                                                 first = true;
                                                 k = 0;
                                                 counterBloc.counterSink
@@ -278,7 +389,7 @@ class MyAppState extends State<MyApp> {
                                                             '-') &&
                                                         (result[result.length -
                                                                 1] !=
-                                                            'x') &&
+                                                            '*') &&
                                                         (result[result.length -
                                                                 1] !=
                                                             '/'))) {
@@ -344,7 +455,7 @@ class MyAppState extends State<MyApp> {
                                                 '7',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -394,7 +505,7 @@ class MyAppState extends State<MyApp> {
                                                 '8',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -447,7 +558,7 @@ class MyAppState extends State<MyApp> {
                                                 '9',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -514,7 +625,7 @@ class MyAppState extends State<MyApp> {
                                                             '+' &&
                                                         result[result.length -
                                                                 1] !=
-                                                            'x' &&
+                                                            '*' &&
                                                         result[result.length -
                                                                 1] !=
                                                             '/')) {
@@ -578,7 +689,7 @@ class MyAppState extends State<MyApp> {
                                                 '4',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -631,7 +742,7 @@ class MyAppState extends State<MyApp> {
                                                 '5',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -685,7 +796,7 @@ class MyAppState extends State<MyApp> {
                                                 '6',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -740,7 +851,7 @@ class MyAppState extends State<MyApp> {
                                                 if (!first &&
                                                     ((result[result.length -
                                                                 1] !=
-                                                            'x') &&
+                                                            '*') &&
                                                         result[result.length -
                                                                 1] !=
                                                             '+' &&
@@ -751,7 +862,7 @@ class MyAppState extends State<MyApp> {
                                                                 1] !=
                                                             '/')) {
                                                   k++;
-                                                  result += 'x';
+                                                  result += '*';
                                                   counterBloc.counterSink
                                                       .add(result);
                                                 }
@@ -810,7 +921,7 @@ class MyAppState extends State<MyApp> {
                                                 '1',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -864,7 +975,7 @@ class MyAppState extends State<MyApp> {
                                                 '2',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -918,7 +1029,7 @@ class MyAppState extends State<MyApp> {
                                                 '3',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -983,7 +1094,7 @@ class MyAppState extends State<MyApp> {
                                                             '-' &&
                                                         result[result.length -
                                                                 1] !=
-                                                            'x')) {
+                                                            '*')) {
                                                   k++;
                                                   result += '/';
                                                   counterBloc.counterSink
@@ -1053,7 +1164,7 @@ class MyAppState extends State<MyApp> {
                                                 '0',
                                                 style: TextStyle(
                                                   color: Color.fromRGBO(
-                                                      70, 70, 70, 1),
+                                                      120, 120, 120, 1),
                                                   fontSize: 30,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -1085,8 +1196,8 @@ class MyAppState extends State<MyApp> {
                                         child: Text(
                                           '.',
                                           style: TextStyle(
-                                            color:
-                                                Color.fromRGBO(70, 70, 70, 1),
+                                            color: Color.fromRGBO(
+                                                120, 120, 120, 1),
                                             fontSize: 30,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -1115,12 +1226,27 @@ class MyAppState extends State<MyApp> {
                                           fit: StackFit.expand,
                                           children: [
                                             MaterialButton(
+                                              highlightColor:
+                                                  Colors.transparent,
+                                              splashColor: Colors.transparent,
                                               onPressed: () {
-                                                if (!first) {
+                                                if (!first &&
+                                                    ((result[result.length -
+                                                                1] !=
+                                                            '/') &&
+                                                        result[result.length -
+                                                                1] !=
+                                                            '+' &&
+                                                        result[result.length -
+                                                                1] !=
+                                                            '-' &&
+                                                        result[result.length -
+                                                                1] !=
+                                                            '*')) {
                                                   previousresult = result;
                                                   previousBloc.previousSink
                                                       .add(previousresult);
-                                                  result = "= 78";
+                                                  result = calculate(result);
                                                   counterBloc.counterSink
                                                       .add(result);
                                                 }
